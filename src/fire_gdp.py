@@ -8,7 +8,7 @@ def get_data(file_name,
     """
     Read a CSV file and optionally filter rows by a query.
 
-    Parameters
+    Parameters:
     ----------
     file_name : str or Path
         Path to the input CSV file.
@@ -19,13 +19,13 @@ def get_data(file_name,
     return_header : bool, optional
         Whether to include the header in the output.
 
-    Returns
+    Returns:
     -------
     list
         CSV rows as lists of strings. If return_header
         is True, the header is the first returned row.
 
-    Raises
+    Raises:
     ------
     SystemExit
         Code 1 for an empty file.
