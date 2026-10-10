@@ -1,29 +1,29 @@
-import os
-import sys
 import unittest
-from src import fire_gdp 
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-TEST_FILE = Path(__file__).resolve().parent.parent / "data" / "test_co2.csv"
+from src import fire_gdp
 
-class TestGetColumnIndex(unittest.TestCase):
 
-    def setUp(self):
-        """Define paths to the test datasets."""
-        self.co2_file = (
-            Path(__file__).resolve().parent.parent
-            / "data" / "test_co2.csv"
-        )
+# Test data directory, independent of working directory.
+DATA_DIR = Path(__file__).resolve().parent.parent / "data"
+CO2_FILE = DATA_DIR / "test_co2.csv"
+GDP_FILE = DATA_DIR / "test_gdp.csv"
 
-        self.gdp_file = (
-            Path(__file__).resolve().parent.parent
-            / "data" / "test_gdp.csv"
-        )    
+
+def create_test_file(directory, filename, contents):
+    """Create a temporary CSV file and return its path."""
+    file_path = Path(directory) / filename
+    file_path.write_text(contents, encoding="utf-8")
+    return file_path
+
+
+class TestGetData(unittest.TestCase):
+    """Unit tests for get_data()."""
 
     def test_no_query(self):
-        "No query should return all data rows."
-        result = fire_gdp.get_data(TEST_FILE)
+        """No query should return all data rows."""
+        result = fire_gdp.get_data(CO2_FILE)
 
         self.assertIsInstance(result, list)
         self.assertEqual(len(result), 153)
@@ -34,18 +34,19 @@ class TestGetColumnIndex(unittest.TestCase):
     def test_empty_file(self):
         """An empty input file should produce exit code 1."""
         with TemporaryDirectory() as directory:
-            empty_file = Path(directory) / "empty.csv"
-            empty_file.touch()
+            empty_file = create_test_file(
+                directory, "empty.csv", ""
+            )
 
             with self.assertRaises(SystemExit) as error:
                 fire_gdp.get_data(empty_file)
 
             self.assertEqual(error.exception.code, 1)
-    
+
     def test_query_by_index(self):
         """A column index and value should filter rows."""
         result = fire_gdp.get_data(
-            TEST_FILE,
+            CO2_FILE,
             query_column=0,
             query_value="Australia"
         )
@@ -58,7 +59,7 @@ class TestGetColumnIndex(unittest.TestCase):
     def test_query_by_name(self):
         """A column name and value should filter rows."""
         result = fire_gdp.get_data(
-            TEST_FILE,
+            CO2_FILE,
             query_column="Year",
             query_value="1990"
         )
@@ -69,9 +70,9 @@ class TestGetColumnIndex(unittest.TestCase):
         )
 
     def test_no_matching_query(self):
-        """A valid query with no matches returns an empty list."""
+        """A query with no matches returns an empty list."""
         result = fire_gdp.get_data(
-            TEST_FILE,
+            CO2_FILE,
             query_column="Area",
             query_value="Brazil"
         )
@@ -82,7 +83,7 @@ class TestGetColumnIndex(unittest.TestCase):
         """A missing query column should produce exit code 2."""
         with self.assertRaises(SystemExit) as error:
             fire_gdp.get_data(
-                TEST_FILE,
+                CO2_FILE,
                 query_value="Australia"
             )
 
@@ -92,7 +93,7 @@ class TestGetColumnIndex(unittest.TestCase):
         """A missing query value should produce exit code 2."""
         with self.assertRaises(SystemExit) as error:
             fire_gdp.get_data(
-                TEST_FILE,
+                CO2_FILE,
                 query_column="Area"
             )
 
@@ -101,7 +102,7 @@ class TestGetColumnIndex(unittest.TestCase):
     def test_query_with_header(self):
         """The header should precede the matching rows."""
         result = fire_gdp.get_data(
-            TEST_FILE,
+            CO2_FILE,
             query_column="Area",
             query_value="Australia",
             return_header=True
@@ -118,11 +119,18 @@ class TestGetColumnIndex(unittest.TestCase):
 
     def test_no_query_with_header(self):
         """The header should be included with all rows."""
-        result = fire_gdp.get_data(TEST_FILE, return_header=True)
+        result = fire_gdp.get_data(
+            CO2_FILE,
+            return_header=True
+        )
 
         self.assertEqual(len(result), 154)
         self.assertEqual(result[0][0], "Area")
         self.assertEqual(result[1][0], "Australia")
+
+
+class TestGetColumnIndex(unittest.TestCase):
+    """Unit tests for get_column_index()."""
 
     def test_first_column(self):
         """Return index zero for the first column."""
@@ -152,9 +160,7 @@ class TestGetColumnIndex(unittest.TestCase):
 
     def test_empty_header(self):
         """Return None when the header list is empty."""
-        header = []
-
-        result = fire_gdp.get_column_index(header, "Year")
+        result = fire_gdp.get_column_index([], "Year")
 
         self.assertIsNone(result)
 
@@ -166,18 +172,20 @@ class TestGetColumnIndex(unittest.TestCase):
 
         self.assertIsNone(result)
 
+
+class TestGetFireGDPYearData(unittest.TestCase):
+    """Unit tests for get_fire_gdp_year_data()."""
+
     def test_complete_data(self):
         """Test matching years and values for Australia."""
         result = fire_gdp.get_fire_gdp_year_data(
-            self.co2_file, self.gdp_file, "Australia"
+            CO2_FILE, GDP_FILE, "Australia"
         )
 
         self.assertEqual(len(result), 31)
-
         self.assertEqual(
             result[0], [1990, 4240.9972, 413659.0]
         )
-
         self.assertEqual(
             result[-1], [2020, 10985.2467, 1972898.0]
         )
@@ -190,11 +198,10 @@ class TestGetColumnIndex(unittest.TestCase):
     def test_georgia_missing_gdp(self):
         """Test that missing early GDP values are skipped."""
         result = fire_gdp.get_fire_gdp_year_data(
-            self.co2_file, self.gdp_file, "Georgia"
+            CO2_FILE, GDP_FILE, "Georgia"
         )
 
         self.assertEqual(len(result), 25)
-
         self.assertEqual(
             result[0], [1996, 8.4549, 3868.48]
         )
@@ -207,11 +214,10 @@ class TestGetColumnIndex(unittest.TestCase):
     def test_ireland_missing_gdp(self):
         """Test that missing GDP values are excluded."""
         result = fire_gdp.get_fire_gdp_year_data(
-            self.co2_file, self.gdp_file, "Ireland"
+            CO2_FILE, GDP_FILE, "Ireland"
         )
 
         self.assertEqual(len(result), 26)
-
         self.assertEqual(
             result[0], [1995, 0.4185, 54758.74]
         )
@@ -224,7 +230,7 @@ class TestGetColumnIndex(unittest.TestCase):
     def test_nonexistent_country(self):
         """Test a country absent from both datasets."""
         result = fire_gdp.get_fire_gdp_year_data(
-            self.co2_file, self.gdp_file, "Brazil"
+            CO2_FILE, GDP_FILE, "Brazil"
         )
 
         self.assertEqual(result, [])
@@ -232,24 +238,21 @@ class TestGetColumnIndex(unittest.TestCase):
     def test_missing_fires_and_year(self):
         """Test missing emissions and unmatched GDP years."""
         with TemporaryDirectory() as directory:
-            directory = Path(directory)
-
-            co2_file = directory / "co2.csv"
-            gdp_file = directory / "gdp.csv"
-
-            co2_file.write_text(
+            co2_file = create_test_file(
+                directory,
+                "co2.csv",
                 "Area,Year,Forest fires\n"
                 "Testland,2000,10.5\n"
                 "Testland,2001,\n"
                 "Testland,2002,30.0\n"
-                "Testland,2003,40.0\n",
-                encoding="utf-8"
+                "Testland,2003,40.0\n"
             )
 
-            gdp_file.write_text(
+            gdp_file = create_test_file(
+                directory,
+                "gdp.csv",
                 "Country,2000,2001,2002\n"
-                "Testland,100.0,200.0,\n",
-                encoding="utf-8"
+                "Testland,100.0,200.0,\n"
             )
 
             result = fire_gdp.get_fire_gdp_year_data(
@@ -259,5 +262,7 @@ class TestGetColumnIndex(unittest.TestCase):
             self.assertEqual(
                 result, [[2000, 10.5, 100.0]]
             )
-if __name__ == '__main__':
+
+
+if __name__ == "__main__":
     unittest.main()

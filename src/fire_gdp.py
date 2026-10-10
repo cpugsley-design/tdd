@@ -1,10 +1,11 @@
 import csv
 
+
 def get_data(file_name,
              query_column=None,
              query_value=None,
              return_header=False):
-    
+
     """
     Read a CSV file and optionally filter rows by a query.
 
@@ -79,6 +80,7 @@ def get_data(file_name,
     return rows
     pass
 
+
 def get_column_index(header, column_name):
     """
     Return the index of a specified column in a header.
@@ -102,7 +104,7 @@ def get_column_index(header, column_name):
 
     except ValueError:
         return None
-    
+
     pass
 
 
@@ -205,4 +207,3 @@ def get_fire_gdp_year_data(co2_file, gdp_file, country):
 
     return result
     pass
-
