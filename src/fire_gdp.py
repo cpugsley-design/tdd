@@ -83,14 +83,14 @@ def get_column_index(header, column_name):
     """
     Return the index of a specified column in a header.
 
-    Parameters
+    Parameters:
     ----------
     header : list
         List of column names.
     column_name : str
         Name of the column to locate.
 
-    Returns
+    Returns:
     -------
     int or None
         Zero-based index of the column if found,
