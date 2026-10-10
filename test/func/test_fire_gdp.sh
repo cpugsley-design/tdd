@@ -3,7 +3,7 @@
 
 # Functional tests for the fire-GDP plotting program.
 
-set -e
+set -u
 
 # Move to the repository root.
 cd "$(dirname "$0")/../.."
