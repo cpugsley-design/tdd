@@ -110,7 +110,7 @@ def get_fire_gdp_year_data(co2_file, gdp_file, country):
     """
     Combine forest-fire emissions and GDP by country and year.
 
-    Parameters
+    Parameters:
     ----------
     co2_file : str or Path
         Path to the forest-fire emissions CSV file.
@@ -119,7 +119,7 @@ def get_fire_gdp_year_data(co2_file, gdp_file, country):
     country : str
         Country name to query.
 
-    Returns
+    Returns:
     -------
     list
         List of [year, forest_fires, gdp] entries.
