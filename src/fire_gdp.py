@@ -107,5 +107,102 @@ def get_column_index(header, column_name):
 
 
 def get_fire_gdp_year_data(co2_file, gdp_file, country):
+    """
+    Combine forest-fire emissions and GDP by country and year.
+
+    Parameters
+    ----------
+    co2_file : str or Path
+        Path to the forest-fire emissions CSV file.
+    gdp_file : str or Path
+        Path to the GDP CSV file.
+    country : str
+        Country name to query.
+
+    Returns
+    -------
+    list
+        List of [year, forest_fires, gdp] entries.
+        Years are integers; emissions and GDP are floats.
+        Years with missing values are excluded.
+    """
+
+    # Retrieve CO2 data for the selected country.
+    co2_data = get_data(
+        co2_file,
+        query_column="Area",
+        query_value=country,
+        return_header=True
+    )
+
+    # Retrieve GDP data for the selected country.
+    gdp_data = get_data(
+        gdp_file,
+        query_column="Country",
+        query_value=country,
+        return_header=True
+    )
+
+    # Separate headers and data.
+    co2_header = co2_data[0]
+    co2_rows = co2_data[1:]
+
+    gdp_header = gdp_data[0]
+    gdp_rows = gdp_data[1:]
+
+    # Return an empty list if the country was not found.
+    if not co2_rows or not gdp_rows:
+        return []
+
+    # GDP file has one row per country.
+    gdp_row = gdp_rows[0]
+
+    # Locate necessary CO2 columns.
+    fires_index = get_column_index(
+        co2_header, "Forest fires"
+    )
+
+    year_index = get_column_index(
+        co2_header, "Year"
+    )
+
+    # Check that required columns exist.
+    if fires_index is None or year_index is None:
+        return []
+
+    # Store matching observations.
+    result = []
+
+    for row in co2_rows:
+
+        # Extract year and forest-fire emissions.
+        year = row[year_index]
+        fires = row[fires_index]
+
+        # Locate the corresponding GDP year column.
+        gdp_index = get_column_index(
+            gdp_header, year
+        )
+
+        # Skip years absent from the GDP dataset.
+        if gdp_index is None:
+            continue
+
+        # Retrieve GDP for that year.
+        gdp = gdp_row[gdp_index]
+
+        # Skip incomplete observations.
+        if fires.strip() == "" or gdp.strip() == "":
+            continue
+
+        # Convert to numerical values.
+        year = int(year)
+        fires = float(fires)
+        gdp = float(gdp)
+
+        # Append the matching observation.
+        result.append([year, fires, gdp])
+
+    return result
     pass
 
