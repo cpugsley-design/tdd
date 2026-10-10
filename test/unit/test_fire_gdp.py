@@ -1,11 +1,11 @@
 import os
 import sys
 import unittest
-import fire_gdp 
+from src import fire_gdp 
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-TEST_FILE = Path(__file__).resolve().parent / "data" / "test_co2.csv"
+TEST_FILE = Path(__file__).resolve().parent.parent / "data" / "test_co2.csv"
 
 class TestGetColumnIndex(unittest.TestCase):
 
@@ -111,6 +111,14 @@ class TestGetColumnIndex(unittest.TestCase):
         self.assertEqual(len(result), 154)
         self.assertEqual(result[0][0], "Area")
         self.assertEqual(result[1][0], "Australia")
+
+    def test_first_column(self):
+        """Return index zero for the first column."""
+        header = ["Area", "Year", "Forest fires"]
+
+        result = fire_gdp.get_column_index(header, "Area")
+
+        self.assertEqual(result, 0)
 
 if __name__ == '__main__':
     unittest.main()
