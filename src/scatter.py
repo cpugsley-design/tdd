@@ -1,14 +1,11 @@
 import argparse
 import sys
 from pathlib import Path
-
 import matplotlib
+import matplotlib.pyplot as plt
+from fire_gdp import get_fire_gdp_year_data
 
 matplotlib.use("Agg")
-
-import matplotlib.pyplot as plt
-
-from fire_gdp import get_fire_gdp_year_data
 
 
 def create_scatterplot(co2_file, gdp_file, country, output):
