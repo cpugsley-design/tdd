@@ -19,5 +19,17 @@ class TestGetColumnIndex(unittest.TestCase):
         self.assertEqual(result[0][0], "Australia")
         self.assertEqual(result[0][1], "1990")
 
+    def test_empty_file(self):
+        """An empty input file should produce exit code 1."""
+        with TemporaryDirectory() as directory:
+            empty_file = Path(directory) / "empty.csv"
+            empty_file.touch()
+
+            with self.assertRaises(SystemExit) as error:
+                fire_gdp.get_data(empty_file)
+
+            self.assertEqual(error.exception.code, 1)
+            
+
 if __name__ == '__main__':
     unittest.main()
