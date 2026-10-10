@@ -187,5 +187,77 @@ class TestGetColumnIndex(unittest.TestCase):
             self.assertIsInstance(row[1], float)
             self.assertIsInstance(row[2], float)
 
+    def test_georgia_missing_gdp(self):
+        """Test that missing early GDP values are skipped."""
+        result = fire_gdp.get_fire_gdp_year_data(
+            self.co2_file, self.gdp_file, "Georgia"
+        )
+
+        self.assertEqual(len(result), 25)
+
+        self.assertEqual(
+            result[0], [1996, 8.4549, 3868.48]
+        )
+
+        years = [row[0] for row in result]
+
+        for year in [1992, 1993, 1994, 1995]:
+            self.assertNotIn(year, years)
+
+    def test_ireland_missing_gdp(self):
+        """Test that missing GDP values are excluded."""
+        result = fire_gdp.get_fire_gdp_year_data(
+            self.co2_file, self.gdp_file, "Ireland"
+        )
+
+        self.assertEqual(len(result), 26)
+
+        self.assertEqual(
+            result[0], [1995, 0.4185, 54758.74]
+        )
+
+        years = [row[0] for row in result]
+
+        for year in range(1990, 1995):
+            self.assertNotIn(year, years)
+
+    def test_nonexistent_country(self):
+        """Test a country absent from both datasets."""
+        result = fire_gdp.get_fire_gdp_year_data(
+            self.co2_file, self.gdp_file, "Brazil"
+        )
+
+        self.assertEqual(result, [])
+
+    def test_missing_fires_and_year(self):
+        """Test missing emissions and unmatched GDP years."""
+        with TemporaryDirectory() as directory:
+            directory = Path(directory)
+
+            co2_file = directory / "co2.csv"
+            gdp_file = directory / "gdp.csv"
+
+            co2_file.write_text(
+                "Area,Year,Forest fires\n"
+                "Testland,2000,10.5\n"
+                "Testland,2001,\n"
+                "Testland,2002,30.0\n"
+                "Testland,2003,40.0\n",
+                encoding="utf-8"
+            )
+
+            gdp_file.write_text(
+                "Country,2000,2001,2002\n"
+                "Testland,100.0,200.0,\n",
+                encoding="utf-8"
+            )
+
+            result = fire_gdp.get_fire_gdp_year_data(
+                co2_file, gdp_file, "Testland"
+            )
+
+            self.assertEqual(
+                result, [[2000, 10.5, 100.0]]
+            )
 if __name__ == '__main__':
     unittest.main()
