@@ -9,6 +9,18 @@ TEST_FILE = Path(__file__).resolve().parent.parent / "data" / "test_co2.csv"
 
 class TestGetColumnIndex(unittest.TestCase):
 
+    def setUp(self):
+        """Define paths to the test datasets."""
+        self.co2_file = (
+            Path(__file__).resolve().parent.parent
+            / "data" / "test_co2.csv"
+        )
+
+        self.gdp_file = (
+            Path(__file__).resolve().parent.parent
+            / "data" / "test_gdp.csv"
+        )    
+
     def test_no_query(self):
         "No query should return all data rows."
         result = fire_gdp.get_data(TEST_FILE)
@@ -154,6 +166,26 @@ class TestGetColumnIndex(unittest.TestCase):
 
         self.assertIsNone(result)
 
+    def test_complete_data(self):
+        """Test matching years and values for Australia."""
+        result = fire_gdp.get_fire_gdp_year_data(
+            self.co2_file, self.gdp_file, "Australia"
+        )
+
+        self.assertEqual(len(result), 31)
+
+        self.assertEqual(
+            result[0], [1990, 4240.9972, 413659.0]
+        )
+
+        self.assertEqual(
+            result[-1], [2020, 10985.2467, 1972898.0]
+        )
+
+        for row in result:
+            self.assertIsInstance(row[0], int)
+            self.assertIsInstance(row[1], float)
+            self.assertIsInstance(row[2], float)
 
 if __name__ == '__main__':
     unittest.main()
