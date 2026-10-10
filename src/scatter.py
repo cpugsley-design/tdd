@@ -1,6 +1,3 @@
-
-"""Generate scatterplots of forest-fire emissions versus GDP."""
-
 import argparse
 import sys
 from pathlib import Path
