@@ -70,10 +70,7 @@ def get_data(file_name,
             raise SystemExit(2)
 
         # Select matching rows.
-        rows = [
-            row for row in rows
-            if row[column_index] == query_value
-        ]
+        rows = [row for row in rows if row[column_index] == query_value]
 
     # Optionally include the header.
     if return_header:
