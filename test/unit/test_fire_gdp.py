@@ -120,5 +120,40 @@ class TestGetColumnIndex(unittest.TestCase):
 
         self.assertEqual(result, 0)
 
+    def test_other_column(self):
+        """Return the correct index for another column."""
+        header = ["Area", "Year", "Forest fires"]
+
+        result = fire_gdp.get_column_index(
+            header, "Forest fires"
+        )
+
+        self.assertEqual(result, 2)
+
+    def test_missing_column(self):
+        """Return None when a column is not present."""
+        header = ["Area", "Year", "Forest fires"]
+
+        result = fire_gdp.get_column_index(header, "GDP")
+
+        self.assertIsNone(result)
+
+    def test_empty_header(self):
+        """Return None when the header list is empty."""
+        header = []
+
+        result = fire_gdp.get_column_index(header, "Year")
+
+        self.assertIsNone(result)
+
+    def test_case_sensitivity(self):
+        """Column names must match case exactly."""
+        header = ["Area", "Year", "Forest fires"]
+
+        result = fire_gdp.get_column_index(header, "year")
+
+        self.assertIsNone(result)
+
+
 if __name__ == '__main__':
     unittest.main()
