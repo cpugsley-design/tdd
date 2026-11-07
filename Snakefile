@@ -34,23 +34,3 @@ rule plot_country:
             "--country {wildcards.country:q} "
             "--output {output:q}"
         )
-
-# Generate a scatterplot for each country.
-rule plot_country:
-    input:
-        co2=CO2_FILE,
-        gdp=GDP_FILE,
-        scatter="src/scatter.py",
-        helper="src/fire_gdp.py"
-    output:
-        "figures/workflow/{country}.png"
-    conda:
-        "envs/plot.yml"
-    shell:
-        (
-            "python {input.scatter:q} "
-            "--co2_file {input.co2:q} "
-            "--gdp_file {input.gdp:q} "
-            "--country {wildcards.country:q} "
-            "--output {output:q}"
-        )
